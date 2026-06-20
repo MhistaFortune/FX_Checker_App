@@ -9,21 +9,28 @@ export interface Rates {
   [currencyCode: string]: number;
 }
 
-export interface LatestRatesResponse {
-  amount: number;
-  base: string;
+export interface RateData {
   date: string;
-  rates: Rates;
+  base: string;
+  quote: string;
+  rate: number;
+}
+
+export interface LatestRatesResponse {
+  rates?: Rates;
+  amount?: number;
+  base?: string;
+  date?: string;
 }
 
 export interface HistoricalRatesResponse {
-  amount: number;
-  base: string;
-  start_date: string;
-  end_date: string;
-  rates: {
+  rates?: {
     [dateString: string]: Rates;
   };
+  amount?: number;
+  base?: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 export interface PinnedPair {
