@@ -101,27 +101,46 @@ export function Ticker() {
   return (
     <div className="ticker">
       <div className="ticker-label">● LIVE MARKETS</div>
-      <div className="ticker-items">
-        {loading && items.length === 0 ? (
-          <div className="ticker-item">Loading rates...</div>
-        ) : (
-          items.map((item) => {
-            const key = `${item.from}-${item.to}`;
-            const isUpdated = updatedPairs.has(key);
-            return (
-              <div 
-                key={key} 
-                className={`ticker-item ${isUpdated ? 'animate-update' : ''}`}
-              >
-                <span className="ticker-pair">{item.from}/{item.to}</span>
-                <span className="ticker-rate">{item.rate.toFixed(4)}</span>
-                <span className={`ticker-change ${item.change24h >= 0 ? 'up' : 'down'}`}>
-                  {item.change24h >= 0 ? '▲' : '▼'} {Math.abs(item.change24h).toFixed(2)}%
-                </span>
-              </div>
-            );
-          })
-        )}
+      <div className="ticker-wrapper">
+        <div className="ticker-items">
+          {loading && items.length === 0 ? (
+            <div className="ticker-item">Loading rates...</div>
+          ) : (
+            <>
+              {items.map((item) => {
+                const key = `${item.from}-${item.to}`;
+                const isUpdated = updatedPairs.has(key);
+                return (
+                  <div 
+                    key={key} 
+                    className={`ticker-item ${isUpdated ? 'animate-update' : ''}`}
+                  >
+                    <span className="ticker-pair">{item.from}/{item.to}</span>
+                    <span className="ticker-rate">{item.rate.toFixed(4)}</span>
+                    <span className={`ticker-change ${item.change24h >= 0 ? 'up' : 'down'}`}>
+                      {item.change24h >= 0 ? '▲' : '▼'} {Math.abs(item.change24h).toFixed(2)}%
+                    </span>
+                  </div>
+                );
+              })}
+              {items.map((item) => {
+                const key = `${item.from}-${item.to}-dupe`;
+                return (
+                  <div 
+                    key={key} 
+                    className="ticker-item"
+                  >
+                    <span className="ticker-pair">{item.from}/{item.to}</span>
+                    <span className="ticker-rate">{item.rate.toFixed(4)}</span>
+                    <span className={`ticker-change ${item.change24h >= 0 ? 'up' : 'down'}`}>
+                      {item.change24h >= 0 ? '▲' : '▼'} {Math.abs(item.change24h).toFixed(2)}%
+                    </span>
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
