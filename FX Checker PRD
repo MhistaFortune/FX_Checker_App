@@ -1,0 +1,166 @@
+# Product Requirements Document (PRD)
+## Project: FX Checker (Foreign Exchange Checker App)
+
+---
+
+## 1. Product Overview & Goals
+The **FX Checker** is a high-fidelity currency conversion and market tracking web application. It converts currencies using live exchange rates, visualizes historical performance, compares currencies, tracks favorite pairs, and logs user transactions.
+
+The key goal is to deliver a **portfolio-grade frontend application** with:
+- Premium aesthetics (vibrant dark-first design, micro-animations, glassmorphism).
+- Robust state management and offline capability (caching).
+- Flawless keyboard accessibility (WCAG compliance) and focus management.
+- Dynamic data integration with real-time feedback.
+
+---
+
+## 2. Functional Requirements & User Stories
+
+### A. Currency Converter
+- **User Story:** As a user, I want to input an amount in a "send" currency and see the converted value in the "receive" currency update instantly as I type.
+- **Requirements:**
+  - Real-time conversion input (debounce/optimization to avoid excessive API requests or CPU re-renders).
+  - A readable display of the active exchange rate (e.g., `1 USD = 0.8530 EUR`).
+  - A "Swap" button that reverses the send and receive currencies.
+  - Quick action to "Favorite" the active pair.
+  - Recording the conversion automatically to a persistent **Conversion Log** once completed or trigger-based.
+
+### B. Currency Picker
+- **User Story:** As a user, I want to search and select currencies easily from a picker.
+- **Requirements:**
+  - Searchable list supporting filtering by currency code (e.g., `USD`) or currency name (e.g., `United States Dollar`).
+  - Currencies divided into "Popular" and "Other" lists.
+  - Rows display the country flag, currency code, and full name.
+  - Visually indicate the currently selected currency with a checkmark.
+  - Must be fully keyboard-navigable (up/down arrows, enter key).
+
+### C. Live Markets Ticker
+- **User Story:** As a user, I want a ticker at the top or bottom of the screen showing current exchange rates for key pairs.
+- **Requirements:**
+  - Horizontal list or ticker showing a list of currency pairs.
+  - Each item displays the pair name, current rate, and 24-hour absolute and percentage change (visual indicators for up/down, e.g., green/red).
+
+### D. Rate History & Interactive Chart
+- **User Story:** As a user, I want to view the historic performance of the selected currency pair over time so I can make informed decisions.
+- **Requirements:**
+  - Line and area chart showing exchange rate fluctuations.
+  - Range switchers for `1D`, `1W`, `1M`, `3M`, `1Y`, and `5Y`.
+  - Display metrics for the selected range: Open, Last, Absolute Change, and Percentage Change.
+  - Smooth interactive crosshair on hover to show precise date and exchange rate.
+  - Fallback layout / error state if history fails to load.
+
+### E. Compare Currencies
+- **User Story:** As a user, I want to see how my send amount converts into multiple currencies simultaneously.
+- **Requirements:**
+  - A grid or table showing the send amount converted to various target currencies.
+  - Each row shows the currency flag, code, conversion rate, and final value.
+  - Option to pin/unpin rows. Pinned items are saved in the favorites configuration.
+  - **Empty state:** If the send amount is blank, display a prompt asking the user to enter a value.
+
+### F. Pinned Favorites
+- **User Story:** As a user, I want a dedicated dashboard to quickly access my preferred currency pairs.
+- **Requirements:**
+  - Displays pinned pairs with their live rate and 24-hour change.
+  - Selecting a favorite row loads that pair directly into the main converter.
+  - Easy button to unpin.
+  - **Empty state:** Show a friendly helper illustration/message when no pairs are pinned.
+
+### G. Conversion Log
+- **User Story:** As a user, I want to see a running history of my conversions.
+- **Requirements:**
+  - Lists past conversions with relative time stamps (e.g., "2 mins ago"), currency pairs, and original/converted amounts.
+  - Individual delete button for each entry.
+  - Clear all button.
+  - **Empty state:** Show a prompt explaining how the log works.
+
+---
+
+## 3. Technical Architecture & Structural Options
+Since this is an intermediate-to-advanced React project, we must weigh different engineering approaches. Below are the key architectural options and their trade-offs.
+
+```mermaid
+graph TD
+    subgraph Frontend [React Application]
+        State[State Management: React Context / Zustand]
+        UI[UI Components]
+        Storage[localStorage Sync]
+        Cache[Offline Cache / Fallback]
+    end
+    subgraph External [External Services]
+        API[Frankfurter API]
+    end
+    UI --> State
+    State <--> Storage
+    State <--> API
+    API --> Cache
+```
+
+### A. State Management
+- **Option 1: React Context API + `useReducer`**
+  - *Trade-off:* Standard in React, requires no external dependencies. However, can lead to unnecessary re-renders if all values are in a single context provider. Requires careful memoization or splitting of contexts.
+- **Option 2: Zustand**
+  - *Trade-off:* Extremely lightweight, boilerplate-free, and avoids re-render issues. Makes persistent storage sync (`localStorage`) trivial using middleware. However, introduces an external dependency.
+- **Option 3: Redux Toolkit**
+  - *Trade-off:* Highly structured and standard in enterprise environments. Provides powerful debugging via Redux DevTools. However, adds significant boilerplate for a single-page app of this scale.
+
+### B. Styling Architecture
+- **Option 1: CSS Modules / Custom Properties (CSS variables)**
+  - *Trade-off:* High maintainability, local scope, keeps files clean, and forces the developer to write pure CSS (essential for showing CSS mastery in a portfolio). Excellent for setting up theming.
+- **Option 2: Styled Components / CSS-in-JS**
+  - *Trade-off:* Colocates logic and styles, makes dynamic style props easy. However, introduces run-time overhead and complicates clean CSS structure.
+- **Option 3: TailwindCSS**
+  - *Trade-off:* Rapid styling workflow. However, results in crowded HTML/JSX markup and doesn't showcase pure CSS capabilities as effectively.
+
+### C. Data Fetching & Caching
+- **Option 1: Custom hooks with `useEffect` and `fetch`**
+  - *Trade-off:* Simple to implement, but requires writing manual code for caching, deduplication, retry logic, and race conditions.
+- **Option 2: TanStack Query (React Query)**
+  - *Trade-off:* Out-of-the-box caching, retry mechanism, loading/error states, and background refetching. Highly recommended for production-grade API integrations. However, requires learning its API.
+
+---
+
+## 4. External API Integration
+The primary data source is the **Frankfurter API** (free, CORS-enabled, backed by the European Central Bank).
+
+### Core Endpoints
+1. **Currencies List:**
+   - `GET https://api.frankfurter.dev/v2/currencies`
+   - *Response Format:* Map of currency codes to names.
+2. **Latest Rates (Multi-currency & Converter):**
+   - `GET https://api.frankfurter.dev/v2/latest?base={base_currency}`
+   - *Response Format:* Rates object for all supported target currencies.
+3. **Single Pair Rates (Lighter check):**
+   - `GET https://api.frankfurter.dev/v2/latest?base={base}&symbols={symbols}`
+4. **Historical Rates (Chart Time-Series):**
+   - `GET https://api.frankfurter.dev/v2/{start_date}..{end_date}?base={base}&symbols={symbols}`
+
+### Offline & Resiliency Strategy
+- Cache successful API responses to `localStorage` or `IndexedDB`.
+- If the API fails, display a banner indicating the app is in offline mode with cached rates (and show the timestamp of the cached rates).
+
+---
+
+## 5. UI/UX, Theming & Accessibility (WCAG 2.1 AA)
+To ensure professional-grade production standards:
+
+### Accessibility Requirements
+- **Keyboard Navigation:** All interactive controls (tabs, dropdowns, inputs, tickers) must be accessible via Tab/Shift+Tab, Arrow Keys, Space, and Enter.
+- **Focus Indicators:** Implement prominent, visible focus outlines. Standard browser outlines may conflict with dark mode styling, so custom high-contrast focus rings are required.
+- **Screen Reader Announcements (`aria-live`):**
+  - Changes to converted values should use `aria-live="polite"`.
+  - System updates (e.g., "EUR/USD pinned to favorites") should be announced.
+- **Semantic Markup:**
+  - Use `<button>` for action triggers, `<select>` or custom popovers with `role="listbox"` and `aria-expanded` for select lists.
+  - Chart range switches must use a group of buttons with `aria-pressed` or radio inputs styled as tabs.
+
+### High-Fidelity Theming
+- Custom font: **JetBrains Mono** (for numeric alignment and modern coder-aesthetic).
+- Smooth transitions on currency changes, chart loads, and hover states.
+- Dark theme first, with an optional system-preference-respecting light theme toggle.
+
+---
+
+## 6. Testing & Quality Assurance Plan
+- **Unit Testing:** Validate conversion mathematics, input sanitization, and date calculation helper functions using Vitest.
+- **Accessibility Audit:** Keyboard-only navigation walk-through, verifying focus does not get trapped. Use `axe-core` / Lighthouse to run accessibility tests.
+- **Responsive Testing:** Verify rendering on screen widths from 320px (mobile) to 1920px (desktop), ensuring tables wrap gracefully.
