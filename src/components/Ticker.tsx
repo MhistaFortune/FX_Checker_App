@@ -19,26 +19,26 @@ export function Ticker() {
     const loadTicker = async () => {
       setLoading(true);
       try {
-        const baseRates: Record<string, TickerItem[]> = {};
+        const allItems: TickerItem[] = [];
 
         for (const [from, to] of TICKER_PAIRS) {
-          if (!baseRates[from]) {
+          try {
             const data = await fetchLatestRates(from);
-            const rate = data.rates[to];
+            const rate = data.rates?.[to];
             if (rate) {
-              baseRates[from] = [
-                {
-                  from,
-                  to,
-                  rate,
-                  change24h: (Math.random() - 0.5) * 2, // Mock change
-                },
-              ];
+              allItems.push({
+                from,
+                to,
+                rate,
+                change24h: (Math.random() - 0.5) * 2, // Mock change
+              });
             }
+          } catch (err) {
+            // Skip if rate fetch fails for this pair
+            continue;
           }
         }
 
-        const allItems = Object.values(baseRates).flat();
         setItems(allItems);
       } catch (error) {
         console.error('Failed to load ticker:', error);

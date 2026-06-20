@@ -16,10 +16,12 @@ export async function fetchCurrencies(): Promise<CurrencyMap> {
   
   // Handle both old format (object) and new format (array)
   if (Array.isArray(data)) {
-    // New format: array of { iso_code, name } objects
+    // New format: array of objects with iso_code and name
     const map: CurrencyMap = {};
-    data.forEach((item: { iso_code: string; name: string }) => {
-      map[item.iso_code] = item.name;
+    data.forEach((item: any) => {
+      if (item.iso_code && item.name) {
+        map[item.iso_code] = item.name;
+      }
     });
     return map;
   }
