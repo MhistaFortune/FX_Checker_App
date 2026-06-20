@@ -121,22 +121,21 @@ export function Converter({
 
       {exchangeRate && (
         <div className="exchange-rate">
-          1 {fromCurrency} = {exchangeRate.toFixed(4)} {toCurrency}
+          <span>1 {fromCurrency} = {exchangeRate.toFixed(4)} {toCurrency}</span>
+          <div className="converter-actions">
+            <button
+              className={`btn-primary ${isFavorited ? 'favorited' : ''}`}
+              onClick={handleFavorite}
+              title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              ★ {isFavorited ? 'FAVORITED' : 'FAVORITE'}
+            </button>
+            <button className="btn-secondary" onClick={handleLogConversion}>
+              LOG CONVERSION
+            </button>
+          </div>
         </div>
       )}
-
-      <div className="converter-actions">
-        <button
-          className={`btn-primary ${isFavorited ? 'favorited' : ''}`}
-          onClick={handleFavorite}
-          title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-        >
-          ★ {isFavorited ? 'FAVORITED' : 'FAVORITE'}
-        </button>
-        <button className="btn-secondary" onClick={handleLogConversion}>
-          LOG CONVERSION
-        </button>
-      </div>
     </div>
   );
 }
