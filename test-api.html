@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Frankfurter</title>
+</head>
+<body>
+    <h1>Testing Frankfurter API</h1>
+    <div id="output"></div>
+    
+    <script>
+        const BASE_URL = 'https://api.frankfurter.app';
+        
+        async function testAPI() {
+            const output = document.getElementById('output');
+            
+            try {
+                const latestRes = await fetch(`${BASE_URL}/latest?base=EUR`);
+                const latestData = await latestRes.json();
+                output.innerHTML += `<p>Latest data fetched successfully! Date: ${latestData.date}</p>`;
+                output.innerHTML += `<pre>${JSON.stringify(latestData, null, 2)}</pre>`;
+                
+                const yesterday = new Date(latestData.date);
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+                
+                const histRes = await fetch(`${BASE_URL}/${yesterdayStr}?base=EUR`);
+                const histData = await histRes.json();
+                output.innerHTML += `<p>Historical data fetched successfully!</p>`;
+            } catch (err) {
+                output.innerHTML += `<p style="color: red">Error: ${err.message}</p>`;
+                console.error(err);
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>
