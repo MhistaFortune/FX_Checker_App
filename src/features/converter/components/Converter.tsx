@@ -48,30 +48,32 @@ export function Converter({
       <div className="converter-container">
         {/* From Currency */}
         <div className="converter-column from">
-          <label className="converter-label">SEND</label>
           <div className="converter-input-group">
-            <input
-              type="number"
-              className="converter-input"
-              value={amount}
-              onChange={(e) => onAmountChange(parseFloat(e.target.value) || 0)}
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-            />
-            <button
-              type="button"
-              className="currency-selector"
-              onClick={onOpenFromCurrencyPicker}
-            >
-              <img
-                src={getFlagUrl(fromCurrency)}
-                alt={`${fromCurrency} flag`}
-                className="currency-flag"
+            <label className="converter-label">SEND</label>
+            <div className="converter-input-wrapper">
+              <input
+                type="number"
+                className="converter-input"
+                value={amount}
+                onChange={(e) => onAmountChange(parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+                min="0"
+                step="0.01"
               />
-              <span className="currency-code">{fromCurrency}</span>
-              <span className="currency-chevron"></span>
-            </button>
+              <button
+                type="button"
+                className="currency-selector"
+                onClick={onOpenFromCurrencyPicker}
+              >
+                <img
+                  src={getFlagUrl(fromCurrency)}
+                  alt={`${fromCurrency} flag`}
+                  className="currency-flag"
+                />
+                <span className="currency-code">{fromCurrency}</span>
+                <span className="currency-chevron"></span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -89,28 +91,30 @@ export function Converter({
 
         {/* To Currency */}
         <div className="converter-column to">
-          <label className="converter-label">RECEIVE</label>
           <div className="converter-input-group">
-            <input
-              type="text"
-              className="converter-input receive-input"
-              value={convertedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              readOnly
-              placeholder="0.00"
-            />
-            <button
-              type="button"
-              className="currency-selector"
-              onClick={onOpenToCurrencyPicker}
-            >
-              <img
-                src={getFlagUrl(toCurrency)}
-                alt={`${toCurrency} flag`}
-                className="currency-flag"
+            <label className="converter-label">RECEIVE</label>
+            <div className="converter-input-wrapper">
+              <input
+                type="text"
+                className="converter-input receive-input"
+                value={convertedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                readOnly
+                placeholder="0.00"
               />
-              <span className="currency-code">{toCurrency}</span>
-              <span className="currency-chevron"></span>
-            </button>
+              <button
+                type="button"
+                className="currency-selector"
+                onClick={onOpenToCurrencyPicker}
+              >
+                <img
+                  src={getFlagUrl(toCurrency)}
+                  alt={`${toCurrency} flag`}
+                  className="currency-flag"
+                />
+                <span className="currency-code">{toCurrency}</span>
+                <span className="currency-chevron"></span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
