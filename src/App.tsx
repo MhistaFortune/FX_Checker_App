@@ -32,15 +32,49 @@ function App() {
   const [latestRates, setLatestRates] = useState<{ [key: string]: number }>({});
   const [latestRateDate, setLatestRateDate] = useState<string>();
   const [favorites, setFavorites] = useLocalStorage<PinnedPair[]>('fx-checker-favorites', []);
+
+  // Clean corrupted favorites data on load
+  useEffect(() => {
+    const validFavorites = favorites.filter((item): item is PinnedPair =>
+      item && typeof item.from === 'string' && typeof item.to === 'string'
+    );
+    if (validFavorites.length !== favorites.length) {
+      console.warn('Cleaning corrupted favorites data');
+      setFavorites(validFavorites);
+    }
+  }, []);
   const [log, setLog] = useLocalStorage<LogEntry[]>('fx-checker-log', []);
   const [openPicker, setOpenPicker] = useState<PickerType>(null);
+
+  // Initialize state from URL params on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlFrom = params.get('from');
+    const urlTo = params.get('to');
+    const urlAmount = params.get('amount');
+
+    if (urlFrom) setFromCurrency(urlFrom.toUpperCase());
+    if (urlTo) setToCurrency(urlTo.toUpperCase());
+    if (urlAmount) setAmount(parseFloat(urlAmount) || 1000);
+  }, []);
+
+  // Update URL when currencies or amount change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('from', fromCurrency);
+    params.set('to', toCurrency);
+    params.set('amount', amount.toString());
+    
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+  }, [fromCurrency, toCurrency, amount]);
 
   const [eurLatestRates, setEurLatestRates] = useState<{ [key: string]: number }>({});
   const [eurYesterdayRates, setEurYesterdayRates] = useState<{ [key: string]: number }>({});
   const [theme, setTheme] = useLocalStorage<'dark' | 'light'>('fx-checker-theme', 'dark');
 
   const isFavorite = favorites.some(pair => pair.from === fromCurrency && pair.to === toCurrency);
-  const latestRate = latestRates[toCurrency];
+  const latestRate = latestRates && toCurrency && latestRates[toCurrency] !== undefined ? latestRates[toCurrency] : undefined;
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -106,17 +140,21 @@ function App() {
   useEffect(() => {
     async function loadLatestRates() {
       try {
-        const data = await fetchLatestRates(fromCurrency);
+        console.log('Fetching rates for:', fromCurrency, 'to:', toCurrency);
+        const data = await fetchLatestRates(fromCurrency, [toCurrency]);
+        console.log('Rates data:', data);
         // Add the base currency to rates with value 1
         const newRates = { ...data.rates, [fromCurrency]: 1 };
         setLatestRates(newRates);
         setLatestRateDate(data.date);
       } catch (err) {
         console.error('Failed to load latest rates:', err);
+        // Set empty rates to prevent crash
+        setLatestRates({ [fromCurrency]: 1 });
       }
     }
     loadLatestRates();
-  }, [fromCurrency]);
+  }, [fromCurrency, toCurrency]);
 
   const handleSwap = () => {
     // Use a temporary variable to avoid using stale state
@@ -127,6 +165,12 @@ function App() {
   };
 
   const handleToggleFavorite = (from = fromCurrency, to = toCurrency) => {
+    // Validate inputs are strings
+    if (typeof from !== 'string' || typeof to !== 'string') {
+      console.error('Invalid currency codes:', { from, to });
+      return;
+    }
+
     const exists = favorites.some(pair => pair.from === from && pair.to === to);
     if (exists) {
       setFavorites(favorites.filter(pair => !(pair.from === from && pair.to === to)));
@@ -174,6 +218,9 @@ function App() {
 
   return (
     <>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <div className="container">
         <Header
           currencyCount={currencyCount}
@@ -187,7 +234,7 @@ function App() {
         eurYesterdayRates={eurYesterdayRates}
       />
       
-      <div className="container">
+      <div className="container" id="main-content">
         <h2 className="converter-heading">CHECK THE RATE</h2>
         <Converter
           fromCurrency={fromCurrency}

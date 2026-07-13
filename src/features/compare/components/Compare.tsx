@@ -36,13 +36,13 @@ export function Compare({
 
   return (
     <div>
-      <div className="compare-grid">
+      <div className="compare-grid" role="list" aria-label="Currency comparison list">
         {availableCurrencies.map(([code, name]) => {
           const rate = latestRates[code];
           const converted = rate ? amount * rate : 0;
 
           return (
-            <div key={code} className="compare-item">
+            <div key={code} className="compare-item" role="listitem">
               <div className="compare-info">
                 <div className="compare-flags">
                   <img
@@ -75,8 +75,9 @@ export function Compare({
                     e.stopPropagation();
                     onToggleFavorite(fromCurrency, code);
                   }}
+                  aria-label={`${isFavorite(code) ? 'Remove' : 'Add'} ${fromCurrency} to ${code} to favorites`}
                 >
-                  <img src={isFavorite(code) ? iconStarFilled : iconStar} alt="" />
+                  <img src={isFavorite(code) ? iconStarFilled : iconStar} alt="" aria-hidden="true" />
                 </button>
               </div>
             </div>

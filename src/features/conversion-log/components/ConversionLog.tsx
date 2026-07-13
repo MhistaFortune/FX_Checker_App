@@ -20,6 +20,36 @@ export function ConversionLog({
   onClearLog,
   onDeleteEntry
 }: ConversionLogProps) {
+  const exportToCSV = () => {
+    if (log.length === 0) return;
+
+    const headers = ['Date', 'From Currency', 'To Currency', 'Amount', 'Result'];
+    const csvContent = [
+      headers.join(','),
+      ...log.map(entry => {
+        const date = new Date(entry.timestamp).toLocaleDateString();
+        return [
+          date,
+          entry.from,
+          entry.to,
+          entry.amount.toFixed(2),
+          entry.result.toFixed(2)
+        ].join(',');
+      })
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `fx-conversions-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (log.length === 0) {
     return (
       <div className="log-empty">
@@ -47,6 +77,9 @@ export function ConversionLog({
   return (
     <div>
       <div className="log-header">
+        <button type="button" className="export-log-button" onClick={exportToCSV}>
+          Export CSV
+        </button>
         <button type="button" className="clear-log-button" onClick={onClearLog}>
           Clear Log
         </button>
@@ -90,6 +123,7 @@ export function ConversionLog({
               type="button"
               className="delete-log-button"
               onClick={() => onDeleteEntry(entry.id)}
+              aria-label={`Delete conversion from ${entry.from} to ${entry.to}`}
             >
               ✕
             </button>

@@ -30,7 +30,7 @@ export function RateHistory({ fromCurrency, toCurrency }: RateHistoryProps) {
 
         // Check if both currencies are supported by Frankfurter
         if (!isSupportedByFrankfurter(fromCurrency) || !isSupportedByFrankfurter(toCurrency)) {
-          throw new Error('Rate history is only available for Frankfurter-supported currency pairs.');
+          throw new Error(`Historical data is only available for currencies supported by Frankfurter API. ${fromCurrency} or ${toCurrency} is not supported. Try using EUR, USD, GBP, JPY, or other major currencies.`);
         }
 
         const endDate = new Date();
@@ -62,13 +62,16 @@ export function RateHistory({ fromCurrency, toCurrency }: RateHistoryProps) {
   })) : [];
 
   const stats = historyData && historyData.rates ? (() => {
-    const rates = Object.values(historyData.rates).map((r: any) => r[toCurrency]);
+    const rates = Object.values(historyData.rates).map((r: any) => r[toCurrency]).filter(r => r !== undefined && r !== null);
+    
+    if (rates.length === 0) return null;
+    
     const open = rates[0];
     const close = rates[rates.length - 1];
     const high = Math.max(...rates);
     const low = Math.min(...rates);
     const change = close - open;
-    const changePercent = (change / open) * 100;
+    const changePercent = open !== 0 ? (change / open) * 100 : 0;
 
     return { open, close, high, low, change, changePercent };
   })() : null;
@@ -136,13 +139,15 @@ export function RateHistory({ fromCurrency, toCurrency }: RateHistoryProps) {
 
   return (
     <div className="rate-history">
-      <div className="range-selector">
+      <div className="range-selector" role="group" aria-label="Time range selector">
         {RANGES.map(range => (
           <button
             type="button"
             key={range.label}
             className={`range-button ${selectedRange.label === range.label ? 'active' : ''}`}
             onClick={() => setSelectedRange(range)}
+            aria-pressed={selectedRange.label === range.label}
+            aria-label={`Show ${range.label} history`}
           >
             {range.label}
           </button>
@@ -183,7 +188,7 @@ export function RateHistory({ fromCurrency, toCurrency }: RateHistoryProps) {
           <>
             <div className="chart-pair-label">{fromCurrency}/{toCurrency}</div>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} cursor={{ stroke: '#a3ff12', strokeWidth: 1, strokeDasharray: '3 3' }}>
                 <defs>
                   <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#a3ff12" stopOpacity="0.6"/>
@@ -192,18 +197,18 @@ export function RateHistory({ fromCurrency, toCurrency }: RateHistoryProps) {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={formatXAxis} 
-                  stroke="var(--text-muted)" 
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={formatXAxis}
+                  stroke="var(--text-muted)"
                   fontSize={11}
                   tickLine={false}
                   axisLine={false}
                   dy={10}
                 />
-                <YAxis 
-                  domain={yDomain} 
-                  stroke="var(--text-muted)" 
+                <YAxis
+                  domain={yDomain}
+                  stroke="var(--text-muted)"
                   fontSize={11}
                   tickLine={false}
                   axisLine={false}
@@ -211,13 +216,13 @@ export function RateHistory({ fromCurrency, toCurrency }: RateHistoryProps) {
                   tickFormatter={(val) => val.toFixed(3)}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Area 
-                  type="monotone" 
-                  dataKey="rate" 
-                  stroke="#a3ff12" 
+                <Area
+                  type="monotone"
+                  dataKey="rate"
+                  stroke="#a3ff12"
                   strokeWidth={2}
-                  fillOpacity={1} 
-                  fill="url(#chartGradient)" 
+                  fillOpacity={1}
+                  fill="url(#chartGradient)"
                 />
               </AreaChart>
             </ResponsiveContainer>

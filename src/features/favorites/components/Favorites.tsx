@@ -25,9 +25,19 @@ export function Favorites({
 
   const hasRates = Object.keys(eurLatestRates).length > 0;
 
+  console.log('Favorites data:', favorites);
+
+  const validFavorites = favorites.filter(pair => {
+    const isValid = pair && typeof pair.from === 'string' && typeof pair.to === 'string';
+    if (!isValid) {
+      console.warn('Skipping malformed favorite pair:', pair);
+    }
+    return isValid;
+  });
+
   return (
     <div className="favorites-list">
-      {favorites.map((pair, index) => {
+      {validFavorites.map((pair, index) => {
         let rateToday: number | null = null;
         let changePercent: number | null = null;
 
@@ -58,16 +68,34 @@ export function Favorites({
           >
             <div className="favorite-info">
               <div className="favorite-flags">
-                <img
-                  src={getFlagUrl(pair.from)}
-                  alt={pair.from}
-                  className="favorite-flag"
-                />
-                <img
-                  src={getFlagUrl(pair.to)}
-                  alt={pair.to}
-                  className="favorite-flag second"
-                />
+                {typeof pair.from === 'string' && getFlagUrl(pair.from) ? (
+                  <img
+                    src={getFlagUrl(pair.from)}
+                    alt={pair.from}
+                    className="favorite-flag"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="favorite-flag favorite-flag-placeholder">
+                    {typeof pair.from === 'string' ? pair.from.substring(0, 2) : '??'}
+                  </div>
+                )}
+                {typeof pair.to === 'string' && getFlagUrl(pair.to) ? (
+                  <img
+                    src={getFlagUrl(pair.to)}
+                    alt={pair.to}
+                    className="favorite-flag second"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="favorite-flag favorite-flag-placeholder second">
+                    {typeof pair.to === 'string' ? pair.to.substring(0, 2) : '??'}
+                  </div>
+                )}
               </div>
               <div>
                 <div className="favorite-pair">{pair.from}/{pair.to}</div>

@@ -35,8 +35,15 @@ const CURRENCY_TO_COUNTRY: Record<string, string> = {
 /**
  * Returns the resolved URL of the flag webp image for a given currency code.
  * Uses Vite's dynamic asset resolution mechanism.
+ * Falls back to a placeholder if the flag image doesn't exist.
  */
 export function getFlagUrl(currencyCode: string): string {
-  const countryCode = CURRENCY_TO_COUNTRY[currencyCode.toUpperCase()] || currencyCode.substring(0, 2).toLowerCase();
-  return new URL(`../assets/images/flags/${countryCode}.webp`, import.meta.url).href;
+  try {
+    const countryCode = CURRENCY_TO_COUNTRY[currencyCode.toUpperCase()] || currencyCode.substring(0, 2).toLowerCase();
+    return new URL(`../assets/images/flags/${countryCode}.webp`, import.meta.url).href;
+  } catch (error) {
+    console.warn(`Flag image not found for currency: ${currencyCode}`);
+    // Return a placeholder or empty string to prevent page break
+    return '';
+  }
 }

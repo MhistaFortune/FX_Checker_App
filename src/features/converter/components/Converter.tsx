@@ -13,7 +13,7 @@ interface ConverterProps {
   onOpenFromCurrencyPicker: () => void;
   onOpenToCurrencyPicker: () => void;
   onSwap: () => void;
-  onToggleFavorite: () => void;
+  onToggleFavorite: (from: string, to: string) => void;
   onLogConversion: () => void;
   isFavorite: boolean;
   latestRate?: number;
@@ -34,7 +34,7 @@ export function Converter({
   latestRate,
   latestRateDate
 }: ConverterProps) {
-  const convertedAmount = latestRate ? amount * latestRate : 0;
+  const convertedAmount = (latestRate && !isNaN(latestRate)) ? amount * latestRate : 0;
   const [isStacked, setIsStacked] = useState(window.innerWidth <= 1024);
 
   useEffect(() => {
@@ -65,11 +65,18 @@ export function Converter({
                 className="currency-selector"
                 onClick={onOpenFromCurrencyPicker}
               >
-                <img
-                  src={getFlagUrl(fromCurrency)}
-                  alt={`${fromCurrency} flag`}
-                  className="currency-flag"
-                />
+                {getFlagUrl(fromCurrency) ? (
+                  <img
+                    src={getFlagUrl(fromCurrency)}
+                    alt={`${fromCurrency} flag`}
+                    className="currency-flag"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="currency-flag currency-flag-placeholder">{fromCurrency.substring(0, 2)}</div>
+                )}
                 <span className="currency-code">{fromCurrency}</span>
                 <span className="currency-chevron"></span>
               </button>
@@ -106,11 +113,18 @@ export function Converter({
                 className="currency-selector"
                 onClick={onOpenToCurrencyPicker}
               >
-                <img
-                  src={getFlagUrl(toCurrency)}
-                  alt={`${toCurrency} flag`}
-                  className="currency-flag"
-                />
+                {getFlagUrl(toCurrency) ? (
+                  <img
+                    src={getFlagUrl(toCurrency)}
+                    alt={`${toCurrency} flag`}
+                    className="currency-flag"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="currency-flag currency-flag-placeholder">{toCurrency.substring(0, 2)}</div>
+                )}
                 <span className="currency-code">{toCurrency}</span>
                 <span className="currency-chevron"></span>
               </button>
@@ -132,7 +146,7 @@ export function Converter({
           <button
             type="button"
             className={`favorite-button ${isFavorite ? 'favorited' : ''}`}
-            onClick={onToggleFavorite}
+            onClick={() => onToggleFavorite(fromCurrency, toCurrency)}
             aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
           >
             <img src={isFavorite ? iconStarFilled : iconStar} alt="" />
