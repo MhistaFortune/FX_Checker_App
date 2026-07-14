@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchRateHistory, isSupportedByFrankfurter } from '../../../services/api';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cursor } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface RateHistoryProps {
   fromCurrency: string;
@@ -216,7 +216,6 @@ export function RateHistory({ fromCurrency, toCurrency }: RateHistoryProps) {
                   tickFormatter={(val) => val.toFixed(3)}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Cursor stroke="#a3ff12" strokeWidth={1} strokeDasharray="3 3" />
                 <Area
                   type="monotone"
                   dataKey="rate"
