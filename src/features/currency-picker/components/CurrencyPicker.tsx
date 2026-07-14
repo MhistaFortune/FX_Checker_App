@@ -71,7 +71,7 @@ export function CurrencyPicker({
     }
   };
 
-  const allCurrencies = [...popularCurrencies, ...otherCurrencies];
+
 
   return (
     <div 
